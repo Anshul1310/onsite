@@ -8,9 +8,6 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 
 interface ApiService {
-    @POST("dauth")
-    suspend fun loginDAuth(@Body request: DAuthRequest): Response<DAuthResponse>
-
     @POST("mark")
     suspend fun markAttendance(
         @Header("Authorization") authHeader: String,

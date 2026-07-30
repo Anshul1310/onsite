@@ -4,22 +4,6 @@ data class MarkRequest(
     val token: String
 )
 
-data class DAuthRequest(
-    val code: String? = null,
-    val rollNo: String? = null,
-    val name: String? = null,
-    val email: String? = null,
-    val department: String? = null,
-    val year: Int? = null
-)
-
-data class DAuthResponse(
-    val success: Boolean,
-    val token: String? = null,
-    val message: String? = null,
-    val student: Student? = null
-)
-
 data class Student(
     val _id: String,
     val name: String,

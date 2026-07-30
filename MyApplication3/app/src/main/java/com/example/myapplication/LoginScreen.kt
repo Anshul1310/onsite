@@ -1,6 +1,7 @@
 package com.example.myapplication
 
-import android.widget.Toast
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,15 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,19 +20,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.myapplication.network.DAuthRequest
 import com.example.myapplication.network.RetrofitClient
 import com.example.myapplication.network.UserSession
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
-    var rollNo by remember { mutableStateOf("") }
-    var dauthCode by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(UserSession.token) {
+        if (UserSession.token.isNotEmpty()) {
+            navController.navigate("home") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -46,73 +42,23 @@ fun LoginScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "DAuth Login", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        OutlinedTextField(
-            value = rollNo,
-            onValueChange = { rollNo = it },
-            label = { Text("Roll Number / DAuth ID") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Text(text = "Attendance App", fontSize = 28.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = dauthCode,
-            onValueChange = { dauthCode = it },
-            label = { Text("DAuth Code (Optional)") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Text(text = "Login with your DAuth account", fontSize = 16.sp)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(40.dp))
 
         Button(
             onClick = {
-                if (rollNo.isEmpty() && dauthCode.isEmpty()) {
-                    Toast.makeText(context, "Please enter Roll Number or DAuth Code", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-                loading = true
-                errorMessage = ""
-                scope.launch {
-                    try {
-                        val request = if (dauthCode.isNotEmpty()) {
-                            DAuthRequest(code = dauthCode, rollNo = rollNo.ifEmpty { null })
-                        } else {
-                            DAuthRequest(rollNo = rollNo)
-                        }
-                        val response = RetrofitClient.api.loginDAuth(request)
-                        if (response.isSuccessful && response.body()?.success == true) {
-                            val body = response.body()!!
-                            UserSession.token = body.token ?: ""
-                            UserSession.student = body.student
-                            Toast.makeText(context, "Login Successful", Toast.LENGTH_SHORT).show()
-                            navController.navigate("home") {
-                                popUpTo("login") { inclusive = true }
-                            }
-                        } else {
-                            errorMessage = response.body()?.message ?: "DAuth Login Failed"
-                        }
-                    } catch (e: Exception) {
-                        errorMessage = "Error: ${e.message}"
-                    } finally {
-                        loading = false
-                    }
-                }
+                val loginUrl = "${RetrofitClient.BASE_URL}/auth/login"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(loginUrl))
+                context.startActivity(intent)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Login via DAuth")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (loading) {
-            CircularProgressIndicator()
-        } else if (errorMessage.isNotEmpty()) {
-            Text(text = errorMessage, color = androidx.compose.ui.graphics.Color.Red)
+            Text("Login with DAuth", fontSize = 18.sp)
         }
     }
 }
