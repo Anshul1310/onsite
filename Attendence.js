@@ -1,25 +1,21 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose")
 
-const studentSchema = new mongoose.Schema(
+const attendanceSchema = new mongoose.Schema(
     {
-        rollNo: {
-            type: String,
-            required: true,
-            unique: true,
-        },
-        name: {
-            type: String,
+        student: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Student",
             required: true,
         },
-        email: {
-            type: String,
+        qrSession: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "QrSession",
             required: true,
-            unique: true,
-        },
-        department: String,
-        year: Number,
+        }
     },
     { timestamps: true }
 );
 
-export default mongoose.model("Student", studentSchema);
+
+
+module.exports = mongoose.model("Attendance", attendanceSchema);
