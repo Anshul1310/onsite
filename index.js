@@ -27,6 +27,36 @@ app.get("/health", (req, res) => {
 })
 app.use(express.json())
 
+app.get("/attendance/:date", async (req, res) => {
+    try {
+        const { date } = req.params; // Format: YYYY-MM-DD
+
+        const start = new Date(date);
+        const end = new Date(date);
+        end.setDate(end.getDate() + 1);
+
+        const attendance = await Attendance.find({
+            createdAt: {
+                $gte: start,
+                $lt: end
+            }
+        })
+            .populate("student")
+            .populate("qrSession");
+
+        res.json({
+            success: true,
+            attendance
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+});
+
 app.post("/generate", async (req, res) => {
     try {
         const { expirationTime } = req.body; // in minutes
