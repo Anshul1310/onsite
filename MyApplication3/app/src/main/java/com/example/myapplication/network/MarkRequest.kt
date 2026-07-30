@@ -1,5 +1,17 @@
 package com.example.myapplication.network
 
+data class LoginRequest(
+    val rollNo: String,
+    val name: String? = null
+)
+
+data class LoginResponse(
+    val success: Boolean,
+    val token: String? = null,
+    val message: String? = null,
+    val student: Student? = null
+)
+
 data class MarkRequest(
     val token: String
 )

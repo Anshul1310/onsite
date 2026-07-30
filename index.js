@@ -6,15 +6,11 @@ const crypto = require("crypto");
 const QRCode = require("qrcode");
 const path = require("path");
 const jwt = require("jsonwebtoken");
-const axios = require("axios");
 
 const app = express();
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://anshul:anshul@delta.ceopbox.mongodb.net/";
 const PORT = process.env.PORT || 3000;
-const DAUTH_CLIENT_ID = process.env.DAUTH_CLIENT_ID;
-const DAUTH_CLIENT_SECRET = process.env.DAUTH_CLIENT_SECRET;
-const DAUTH_REDIRECT_URI = process.env.DAUTH_REDIRECT_URI || `http://localhost:${PORT}/auth/callback`;
 
 app.use(express.static(path.join(process.cwd(), "public")));
 app.use(express.json());
@@ -81,50 +77,26 @@ app.get("/health", (req, res) => {
     res.send("Hello World!");
 });
 
-app.get("/auth/login", (req, res) => {
-    const dauthUrl = `https://auth.delta.nitt.edu/authorize?client_id=${DAUTH_CLIENT_ID}&redirect_uri=${encodeURIComponent(DAUTH_REDIRECT_URI)}&response_type=code&grant_type=authorization_code&state=attendance_app&scope=email+openid+profile+user`;
-    res.redirect(dauthUrl);
-});
-
-app.get("/auth/callback", async (req, res) => {
+app.post("/login", async (req, res) => {
     try {
-        const { code } = req.query;
-        if (!code) {
-            return res.redirect("onsite://callback?error=no_code");
+        const { rollNo, name, email, department, year } = req.body;
+        if (!rollNo) {
+            return res.status(400).json({ success: false, message: "Roll Number is required." });
         }
-        const tokenRes = await axios.post("https://auth.delta.nitt.edu/api/oauth/token", {
-            client_id: DAUTH_CLIENT_ID,
-            client_secret: DAUTH_CLIENT_SECRET,
-            grant_type: "authorization_code",
-            code: code,
-            redirect_uri: DAUTH_REDIRECT_URI
-        });
-        const userRes = await axios.post("https://auth.delta.nitt.edu/api/resources/user", {}, {
-            headers: { Authorization: `Bearer ${tokenRes.data.access_token}` }
-        });
-        const userData = userRes.data;
-        let student = await Student.findOne({ email: userData.email });
+        let student = await Student.findOne({ rollNo });
         if (!student) {
             student = await Student.create({
-                rollNo: userData.email ? userData.email.split("@")[0] : String(userData.id),
-                name: userData.name || "Student",
-                email: userData.email,
-                department: userData.department || "Unknown",
-                year: userData.year || 1
+                rollNo,
+                name: name || `Student ${rollNo}`,
+                email: email || `${rollNo}@nitt.edu`,
+                department: department || "CSE",
+                year: year || 1
             });
         }
-        const jwtToken = jwt.sign({ studentId: student._id, rollNo: student.rollNo }, JWT_SECRET, { expiresIn: "7d" });
-        const studentJson = encodeURIComponent(JSON.stringify({
-            _id: student._id,
-            name: student.name,
-            rollNo: student.rollNo,
-            email: student.email,
-            department: student.department,
-            year: student.year
-        }));
-        res.redirect(`onsite://callback?token=${jwtToken}&student=${studentJson}`);
+        const token = jwt.sign({ studentId: student._id, rollNo: student.rollNo }, JWT_SECRET, { expiresIn: "7d" });
+        return res.json({ success: true, token, student });
     } catch (err) {
-        res.redirect(`onsite://callback?error=${encodeURIComponent(err.message)}`);
+        return res.status(500).json({ success: false, message: err.message });
     }
 });
 
