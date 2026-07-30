@@ -3,47 +3,39 @@ import React, { useState, useEffect } from 'react'
 async function safeFetchJson(url, options) {
   const res = await fetch(url, options)
   const text = await res.text()
-  let data
   try {
-    data = text ? JSON.parse(text) : {}
-  } catch (e) {
-    throw new Error(`Server returned error (${res.status} ${res.statusText}). Ensure backend server (node index.js) is running on port 3000.`)
+    const data = text ? JSON.parse(text) : {}
+    return { res, data }
+  } catch {
+    throw new Error(`Server returned error (${res.status} ${res.statusText}). Ensure backend server is running.`)
   }
-  return { res, data }
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('qr')
 
-  // QR State
   const [expirationTime, setExpirationTime] = useState(10)
   const [qrData, setQrData] = useState(null)
   const [qrLoading, setQrLoading] = useState(false)
   const [qrError, setQrError] = useState('')
   const [timeLeft, setTimeLeft] = useState(null)
 
-  // Attendance Date State
-  const todayStr = new Date().toISOString().split('T')[0]
-  const [selectedDate, setSelectedDate] = useState(todayStr)
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [attendanceList, setAttendanceList] = useState([])
   const [attendanceLoading, setAttendanceLoading] = useState(false)
   const [attendanceError, setAttendanceError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Live Timer Effect
   useEffect(() => {
-    if (!qrData || !qrData.expiresAt) return
+    if (!qrData?.expiresAt) return
     const timer = setInterval(() => {
-      const expires = new Date(qrData.expiresAt).getTime()
-      const now = new Date().getTime()
-      const diff = Math.max(0, Math.floor((expires - now) / 1000))
+      const diff = Math.max(0, Math.floor((new Date(qrData.expiresAt).getTime() - Date.now()) / 1000))
       setTimeLeft(diff)
       if (diff === 0) clearInterval(timer)
     }, 1000)
     return () => clearInterval(timer)
   }, [qrData])
 
-  // Fetch Attendance by Date
   const fetchAttendance = async (dateStr) => {
     if (!dateStr) return
     setAttendanceLoading(true)
@@ -68,7 +60,6 @@ export default function App() {
     }
   }, [activeTab, selectedDate])
 
-  // Generate QR Session
   const handleGenerateQR = async (e) => {
     e.preventDefault()
     setQrLoading(true)
@@ -91,38 +82,29 @@ export default function App() {
     }
   }
 
-  // Export CSV
   const exportCSV = () => {
-    if (!attendanceList || attendanceList.length === 0) return
+    if (!attendanceList.length) return
     const headers = ['Roll Number', 'Name', 'Email', 'Department', 'Year', 'Marked Time']
     const rows = attendanceList.map((item) => {
       const s = item.student || {}
       const time = item.createdAt ? new Date(item.createdAt).toLocaleString() : 'N/A'
-      return [
-        `"${s.rollNo || ''}"`,
-        `"${s.name || ''}"`,
-        `"${s.email || ''}"`,
-        `"${s.department || ''}"`,
-        `"${s.year || ''}"`,
-        `"${time}"`
-      ].join(',')
+      return [`"${s.rollNo || ''}"`, `"${s.name || ''}"`, `"${s.email || ''}"`, `"${s.department || ''}"`, `"${s.year || ''}"`, `"${time}"`].join(',')
     })
-    const csvString = [headers.join(','), ...rows].join('\n')
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', `attendance_${selectedDate}.csv`)
-    document.body.appendChild(link)
+    link.href = url
+    link.download = `attendance_${selectedDate}.csv`
     link.click()
-    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   const formatTime = (seconds) => {
-    if (seconds === null || seconds === undefined) return '--:--'
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+    if (seconds == null) return '--:--'
+    const m = String(Math.floor(seconds / 60)).padStart(2, '0')
+    const s = String(seconds % 60).padStart(2, '0')
+    return `${m}:${s}`
   }
 
   const filteredAttendance = attendanceList.filter((item) => {
@@ -200,7 +182,7 @@ export default function App() {
         {activeTab === 'attendance' && (
           <div className="card">
             <div className="controls">
-              <div style={{ display: 'flex', gap: '1rem', itemsCenter: 'center', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <div>
                   <label className="form-label">Date</label>
                   <input
