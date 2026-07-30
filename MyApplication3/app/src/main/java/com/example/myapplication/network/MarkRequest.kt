@@ -40,3 +40,16 @@ data class AttendanceCountResponse(
     val student: Student,
     val count: Int
 )
+
+data class GenerateRequest(
+    val expirationTime: Int = 10
+)
+
+data class GenerateResponse(
+    val success: Boolean,
+    val qrSessionId: String? = null,
+    val token: String? = null,
+    val qrUrl: String? = null,
+    val expiresAt: String? = null,
+    val message: String? = null
+)

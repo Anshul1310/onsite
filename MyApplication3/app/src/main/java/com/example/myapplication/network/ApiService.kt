@@ -26,4 +26,9 @@ interface ApiService {
     suspend fun getAttendanceCount(
         @Path("rollNo") rollNo: String
     ): AttendanceCountResponse
+
+    @POST("generate")
+    suspend fun generateQr(
+        @Body request: GenerateRequest = GenerateRequest()
+    ): Response<GenerateResponse>
 }

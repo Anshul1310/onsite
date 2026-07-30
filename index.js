@@ -138,13 +138,11 @@ app.get("/attendance/:date", async (req, res) => {
 
 app.post("/generate", async (req, res) => {
     try {
-        const { expirationTime } = req.body;
-        if (!expirationTime || expirationTime <= 0) {
-            return res.status(400).json({ success: false, message: "Valid expirationTime is required." });
-        }
+        const { expirationTime } = req.body || {};
+        const expMins = (expirationTime && Number(expirationTime) > 0) ? Number(expirationTime) : 10;
         await QrSession.updateMany({}, { $set: { isActive: false } });
         const token = crypto.randomUUID();
-        const expiresAt = new Date(Date.now() + expirationTime * 60 * 1000);
+        const expiresAt = new Date(Date.now() + expMins * 60 * 1000);
         const qrSession = await QrSession.create({ token, isActive: true, expiresAt });
         const qrFolder = path.join(process.cwd(), "public", "qr");
         if (!fs.existsSync(qrFolder)) {
