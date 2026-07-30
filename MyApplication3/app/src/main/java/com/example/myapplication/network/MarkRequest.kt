@@ -24,3 +24,9 @@ data class AttendanceResponse(
     val success: Boolean,
     val attendance: List<Attendance>
 )
+
+data class AttendanceCountResponse(
+    val success: Boolean,
+    val student: Student,
+    val count: Int
+)

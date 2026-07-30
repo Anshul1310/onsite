@@ -14,4 +14,9 @@ interface ApiService {
     suspend fun getAttendance(
         @Path("date") date: String
     ): AttendanceResponse
+
+    @GET("attendance/count/{rollNo}")
+    suspend fun getAttendanceCount(
+        @Path("rollNo") rollNo: String
+    ): AttendanceCountResponse
 }

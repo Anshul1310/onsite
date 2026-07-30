@@ -28,6 +28,9 @@ class MainActivity : ComponentActivity() {
                 composable("attendance") {
                     AttendanceScreen()
                 }
+                composable("count") {
+                    AttendanceCountScreen()
+                }
             }
         }
     }

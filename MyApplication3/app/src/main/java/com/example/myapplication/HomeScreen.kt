@@ -44,5 +44,14 @@ fun HomeScreen(navController: NavController) {
         ) {
             Text("View Attendance")
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { navController.navigate("count") },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Attendance Count")
+        }
     }
 }

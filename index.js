@@ -27,6 +27,20 @@ app.get("/health", (req, res) => {
 })
 app.use(express.json())
 
+app.get("/attendance/count/:rollNo", async (req, res) => {
+    try {
+        const { rollNo } = req.params;
+        const student = await Student.findOne({ rollNo });
+        if (!student) {
+            return res.status(404).json({ success: false, message: "Student not found." });
+        }
+        const count = await Attendance.countDocuments({ student: student._id });
+        res.json({ success: true, student, count });
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 app.get("/attendance/:date", async (req, res) => {
     try {
         const { date } = req.params; // Format: YYYY-MM-DD
