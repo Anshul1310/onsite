@@ -22,7 +22,7 @@ const connectDB = async () => {
 
 
 
-app.get("/", (req, res) => {
+app.get("/health", (req, res) => {
     res.send("Hello World!")
 })
 app.use(express.json())
@@ -111,7 +111,6 @@ app.post("/mark", async (req, res) => {
             });
         }
 
-        // Check if QR has expired
         if (qrSession.expiresAt < new Date()) {
             return res.status(400).json({
                 success: false,
@@ -119,7 +118,6 @@ app.post("/mark", async (req, res) => {
             });
         }
 
-        // Verify student exists
         const student = await Student.findById(studentId);
 
         if (!student) {
@@ -129,7 +127,6 @@ app.post("/mark", async (req, res) => {
             });
         }
 
-        // Prevent duplicate attendance
         const alreadyMarked = await Attendance.findOne({
             student: studentId,
             qrSession: qrSession._id
