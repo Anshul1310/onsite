@@ -17,8 +17,11 @@ class MainActivity : ComponentActivity() {
 
             NavHost(
                 navController = navController,
-                startDestination = "home"
+                startDestination = "login"
             ) {
+                composable("login") {
+                    LoginScreen(navController)
+                }
                 composable("home") {
                     HomeScreen(navController)
                 }

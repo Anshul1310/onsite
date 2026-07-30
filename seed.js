@@ -1,22 +1,16 @@
-const mongoose = require("mongoose")
-const Student = require("./Student.js")
+const mongoose = require("mongoose");
+const Student = require("./Student.js");
 
 const students = [
-    { rollNo: "112125005", name: "Anshul Negi", email: "anshul@test.com", department: "MME", year: 4 },
-
-]
+    { rollNo: "112125005", name: "Anshul Negi", email: "anshul@test.com", department: "MME", year: 4 }
+];
 
 async function seed() {
-    await mongoose.connect("mongodb+srv://anshul:anshul@delta.ceopbox.mongodb.net/")
-    console.log("Connected")
-
-    await Student.deleteMany({})
-    const created = await Student.insertMany(students)
-
-    created.forEach(s => console.log(`${s.name} -> ${s._id}`))
-
-    console.log("Done. Use the _id values above as studentId in the app.")
-    process.exit(0)
+    await mongoose.connect("mongodb+srv://anshul:anshul@delta.ceopbox.mongodb.net/");
+    await Student.deleteMany({});
+    const created = await Student.insertMany(students);
+    created.forEach(s => console.log(`${s.name} -> ${s._id}`));
+    process.exit(0);
 }
 
-seed()
+seed();
