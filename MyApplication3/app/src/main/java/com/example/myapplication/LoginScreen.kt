@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
     var rollNo by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
@@ -57,15 +56,6 @@ fun LoginScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name (Optional)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
@@ -78,7 +68,7 @@ fun LoginScreen(navController: NavController) {
                 errorMessage = ""
                 scope.launch {
                     try {
-                        val response = RetrofitClient.api.login(LoginRequest(rollNo, name.ifEmpty { null }))
+                        val response = RetrofitClient.api.login(LoginRequest(rollNo))
                         if (response.isSuccessful && response.body()?.success == true) {
                             val body = response.body()!!
                             UserSession.token = body.token ?: ""

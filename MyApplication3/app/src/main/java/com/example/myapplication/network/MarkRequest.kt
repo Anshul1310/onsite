@@ -1,8 +1,7 @@
 package com.example.myapplication.network
 
 data class LoginRequest(
-    val rollNo: String,
-    val name: String? = null
+    val rollNo: String
 )
 
 data class LoginResponse(
